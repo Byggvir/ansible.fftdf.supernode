@@ -2,15 +2,14 @@
 # In case of python error start:
 # ansible troisdorf4 -u root -m raw -a "apt-get update && apt-get install python -y"
 
-- name: Install Freifunk Troisdorf super node
-#  hosts: FreifunkSupernodesL2TP
-  hosts: '{{ target }}'
+- name: Install Freifunk Voreifel super node
+  hosts: all
   sudo: False
   user: root
   gather_facts: False
   vars:
-    snversion: master_v3.1.6
-    batmanversion: v2017.4
+    snversion: master_v0.1.0
+#   batmanversion: v2017.4 # obsolet
     common_required_packages:
       - git
       - make
@@ -78,6 +77,7 @@
       raw: "apt-get update && apt-get install python apt-transport-https dirmngr -y"
     - name: Adding Freifuck GPG Key
       raw: "apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B2522557E6AB9BF5"
+# Historisch, umstellen auf apt-key
 #      apt_key:
 #             id: B2522557E6AB9BF5
 #             url: https://keyserver.ubuntu.com
@@ -105,7 +105,7 @@
     - name: set hostname
       hostname: name='{{ sn_hostname }}'
       register: sethostname
-    - name: disable multi CPU Kernel (SMP)
+    - name: disable multi CPU Kernel (SMP) # Wg. Fehler batman auf multi proc sys
       lineinfile: dest=/etc/default/grub regexp='^GRUB_CMDLINE_LINUX_DEFAULT=' line='GRUB_CMDLINE_LINUX_DEFAULT="quiet maxcpus=0 nosmp"' state=present
       register: grubnosmp
     - name: Update grub
@@ -133,7 +133,7 @@
         update_cache: yes
       with_items: "{{ common_required_packages }}"
       register: aptupdates
-    - name: Set clock
+    - name: Set clock # t assure valid time
       shell: /etc/init.d/ntp stop && /usr/sbin/ntpd -q -g && /etc/init.d/ntp start
     - name: Get Tunneldigger
       git: repo=https://github.com/Freifunk-Troisdorf/tunneldigger.git dest=/srv/tunneldigger
@@ -196,7 +196,7 @@
     - name: Exit node startup script super- and exitnode
       template: src=./files/sn_startup.exit.sh.j2 dest=/opt/freifunk/sn_startup.sh owner=root group=root mode=0500
       when: sn_exit is defined
-    - name: Exit node startup script super- and exitnode
+    - name: Exit node startup script super- and exitnode # local fuer lokales testen 
       template: src=./files/sn_startup.local.exit.sh.j2 dest=/opt/freifunk/sn_startup.sh owner=root group=root mode=0500
       when: sn_local_exit is defined
     - name: SSH authorized_keys
