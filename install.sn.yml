@@ -131,7 +131,7 @@
         name: "{{ common_required_packages }}"
         state: present
         update_cache: yes
-        register: aptupdates
+      register: aptupdates
     - name: Set clock # t assure valid time
       shell: /etc/init.d/ntp stop && /usr/sbin/ntpd -q -g && /etc/init.d/ntp start
     - name: Get Tunneldigger
